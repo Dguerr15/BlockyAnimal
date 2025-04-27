@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Blocky Animal</title>
+</head>
+<body onload="main()">
+    <h1>WebGL Paint Program</h1>
+    
+    <div style="display: flex; align-items: flex-start; gap: 20px;">
+      <div>
+          <canvas id="webgl" width="400" height="400">
+              Please use a browser that supports "canvas"
+          </canvas>
+        <p>
+            Left Arm <Input type="range" min="-45" max="45" value="0" class = "slider" id="leftArmSlide">
+        </p>
+        <p>
+            Left Hand <Input type="range" min="-45" max="45" value="0" class = "slider" id="leftHandSlide">
+        </p>
+      </div>
+      <div>
+        <p>
+            Camera Angle <Input type="range" min="0" max="90" value="0" class = "slider" id="angleSlide">
+        <p>
+        <p>
+            Animation:
+            <button type="button" id="start">Start</button>
+            <button type="button" id="stop">Stop</button>
+        </p>
+      </div>
+  </div>
+    <!-- Include the WebGL libraries and our script -->
+    <script src="blockyAnimal.js"></script>
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix-cse160.js"></script>
+    <script src="point.js"></script>
+    <script src="triangle.js"></script>
+    <script src="circle.js"></script>
+    <script src="cube.js"></script>
+    
+</body>
+</html>

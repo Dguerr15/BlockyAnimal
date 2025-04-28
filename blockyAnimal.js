@@ -68,6 +68,9 @@ var g_seconds = performance.now()/1000.0 - g_startTime;
 var g_isPoking = false;
 var g_pokeStartTime = 0;
 var g_pokeDuration = 3.5; // Duration of the poke animation in seconds
+let g_needsRender = true;
+let g_isAnimating = false;
+let g_lastAnimationTime = 0;
 
 
 function main() {
@@ -141,28 +144,28 @@ function connectVariablesToGLSL() {
 
 // set up event listeners
 function addActionsForHtmlUI() {
-    document.getElementById("start").onclick = function() {g_Animation = true;};
-    document.getElementById("stop").onclick = function() {g_Animation = false;};
+    document.getElementById("start").onclick = function() {g_Animation = true; g_needsRender = true;};
+    document.getElementById("stop").onclick = function() {g_Animation = false; g_needsRender = true;};
 
-    document.getElementById("mouthSlide").addEventListener("mousemove", function() { g_mouth = this.value; renderScene(); });
+    document.getElementById("mouthSlide").addEventListener("mousemove", function() { g_mouth = this.value; renderScene(); g_needsRender = true;});
 
-    document.getElementById("tailSlide").addEventListener("mousemove", function() { g_tail = this.value; renderScene(); });
+    document.getElementById("tailSlide").addEventListener("mousemove", function() { g_tail = this.value; renderScene(); g_needsRender = true;});
 
-    document.getElementById("leftFUSlide").addEventListener("mousemove", function() { g_FLU = this.value; renderScene(); });
-    document.getElementById("leftFLSlide").addEventListener("mousemove", function() { g_FLL = this.value; renderScene(); });
-    document.getElementById("leftFPSlide").addEventListener("mousemove", function() { g_FLP = this.value; renderScene(); });
+    document.getElementById("leftFUSlide").addEventListener("mousemove", function() { g_FLU = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("leftFLSlide").addEventListener("mousemove", function() { g_FLL = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("leftFPSlide").addEventListener("mousemove", function() { g_FLP = this.value; renderScene(); g_needsRender = true;});
 
-    document.getElementById("rightFPSlide").addEventListener("mousemove", function() { g_FRP = this.value; renderScene(); });
-    document.getElementById("rightFLSlide").addEventListener("mousemove", function() { g_FRL = this.value; renderScene(); });
-    document.getElementById("rightFUSlide").addEventListener("mousemove", function() { g_FRU = this.value; renderScene(); });
+    document.getElementById("rightFPSlide").addEventListener("mousemove", function() { g_FRP = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("rightFLSlide").addEventListener("mousemove", function() { g_FRL = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("rightFUSlide").addEventListener("mousemove", function() { g_FRU = this.value; renderScene(); g_needsRender = true;});
 
-    document.getElementById("leftBUSlide").addEventListener("mousemove", function() { g_BLU = this.value; renderScene(); });
-    document.getElementById("leftBLSlide").addEventListener("mousemove", function() { g_BLL = this.value; renderScene(); });
-    document.getElementById("leftBPSlide").addEventListener("mousemove", function() { g_BLP = this.value; renderScene(); });
+    document.getElementById("leftBUSlide").addEventListener("mousemove", function() { g_BLU = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("leftBLSlide").addEventListener("mousemove", function() { g_BLL = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("leftBPSlide").addEventListener("mousemove", function() { g_BLP = this.value; renderScene(); g_needsRender = true;});
 
-    document.getElementById("rightBPSlide").addEventListener("mousemove", function() { g_BRP = this.value; renderScene(); });
-    document.getElementById("rightBLSlide").addEventListener("mousemove", function() { g_BRL = this.value; renderScene(); });
-    document.getElementById("rightBUSlide").addEventListener("mousemove", function() { g_BRU = this.value; renderScene(); });
+    document.getElementById("rightBPSlide").addEventListener("mousemove", function() { g_BRP = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("rightBLSlide").addEventListener("mousemove", function() { g_BRL = this.value; renderScene(); g_needsRender = true;});
+    document.getElementById("rightBUSlide").addEventListener("mousemove", function() { g_BRU = this.value; renderScene(); g_needsRender = true;});
 }
 
 function setupMouseHandlers() {
@@ -175,6 +178,7 @@ function setupMouseHandlers() {
             // Start the poke animation
             g_isPoking = true;
             g_pokeStartTime = performance.now()/1000.0;
+            g_needsRender = true;
             return; // Don't start rotation when poking
         }
 
@@ -191,54 +195,73 @@ function setupMouseHandlers() {
     }
 
     canvas.onmousemove = function(ev) {
+        if (!g_isDragging) return; // Skip processing if not dragging
+        
         var x = ev.clientX;
         var y = ev.clientY;
         
-        if (g_isDragging) {
-            // Calculate the difference from the last position
-            var dx = x - g_lastX;
-            var dy = y - g_lastY;
-            
+        // Calculate the difference from the last position
+        var dx = x - g_lastX;
+        var dy = y - g_lastY;
+        
+        // Only update if there's significant movement
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
             // Update the rotation angles
             g_globalAngleY += dx * 0.5;
             g_globalAngleX += dy * 0.5;
             
             // Keep the angles within reasonable ranges
             g_globalAngleY = g_globalAngleY % 360;
-            g_globalAngleX = Math.max(Math.min(g_globalAngleX, 90), -90); // Limit vertical rotation
+            g_globalAngleX = Math.max(Math.min(g_globalAngleX, 90), -90);
             
             // Update the last position
             g_lastX = x;
             g_lastY = y;
             
-            // Render the scene with new angles
-            renderScene();
+            // Flag that we need to render
+            g_needsRender = true;
         }
     };
 }
 
-function tick(){
-    g_seconds = performance.now()/1000.0 - g_startTime;
-
-    // Update the appropriate animation
-    if (g_isPoking) {
-        updatePokeAnimation();
-    } else if (g_Animation) {
-        updateRunAnimation();
-    }
-
-    renderScene();
-
-    requestAnimationFrame(tick);
-
-    g_frameCount++;
+function tick() {
     const currentTime = performance.now();
+    
+    // Calculate FPS every second
+    g_frameCount++;
     if (currentTime - g_lastTime >= 1000) {
         g_fps = g_frameCount;
         g_frameCount = 0;
         g_lastTime = currentTime;
         document.getElementById("fps").innerText = "FPS: " + g_fps;
     }
+    
+    g_seconds = currentTime/1000.0 - g_startTime;
+    
+    // Check if we need to update animation
+    const needsAnimation = (g_Animation || g_isPoking);
+    const animationTimeElapsed = currentTime - g_lastAnimationTime > 16; // ~60fps for animation
+    
+    // Only update and render when necessary
+    if (needsAnimation && animationTimeElapsed) {
+        g_lastAnimationTime = currentTime;
+        
+        if (g_isPoking) {
+            updatePokeAnimation();
+            g_needsRender = true;
+        } else if (g_Animation) {
+            updateRunAnimation();
+            g_needsRender = true;
+        }
+    }
+    
+    // Only render when something has changed
+    if (g_needsRender) {
+        renderScene();
+        g_needsRender = false; // Reset the flag
+    }
+    
+    requestAnimationFrame(tick);
 }
 
 function updateRunAnimation() {
@@ -266,9 +289,9 @@ function updatePokeAnimation() {
     
     // Surprised reaction animation - ears up, mouth open, front paws up
     // Sitting animation
-    if (progress < 0.4) {
+    if (progress < 0.3) {
         // Initial phase - start sitting down
-        var sitProgress = progress / 0.4;
+        var sitProgress = progress / 0.3;
 
         // Bend Body
         g_body = 25 * sitProgress;  // Bend body down
@@ -291,7 +314,7 @@ function updatePokeAnimation() {
     } 
     else if (progress < 0.7) {
         // Middle of animation - sitting and barking
-        var barkPhase = (progress - 0.4) / 0.3;
+        var barkPhase = (progress - 0.3) / 0.3;
         
         // Keep legs in sitting position
         g_BLU = -30;

@@ -144,9 +144,6 @@ function connectVariablesToGLSL() {
 
 // set up event listeners
 function addActionsForHtmlUI() {
-    document.getElementById("cameraHSlide").addEventListener("input", function() {g_globalAngleY = this.value; g_needsRender = true;});
-    document.getElementById("cameraVSlide").addEventListener("input", function() {g_globalAngleX = this.value; g_needsRender = true;});
-
     document.getElementById("start").onclick = function() {g_Animation = true; g_needsRender = true;};
     document.getElementById("stop").onclick = function() {g_Animation = false; g_needsRender = true;};
 
@@ -195,6 +192,10 @@ function setupMouseHandlers() {
     };
     canvas.onmouseup = function(ev) {
         g_isDragging = false;
+    }
+
+    canvas.onmouseleave = function(ev) {
+        g_isDragging = false; // Also stop dragging if mouse leaves canvas
     }
 
     canvas.onmousemove = function(ev) {
@@ -283,6 +284,7 @@ function updatePokeAnimation() {
     if (pokeTime > g_pokeDuration) {
         // Reset after animation completes
         g_isPoking = false;
+        g_isDragging = false;
         resetAnimalPose();
         return;
     }

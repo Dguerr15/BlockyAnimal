@@ -364,10 +364,10 @@ function renderScene() {
 
     // body 
     var body = new Cube();
-    body.matrix.setTranslate(-0.25, -0.26, 0.0);
+    body.matrix.setTranslate(-0.25, -0.2, -0.05);
     body.matrix.rotate(g_body, 1, 0, 0);
     var bodyCoords = new Matrix4(body.matrix);
-    body.matrix.scale(0.5, 0.3, 0.6);
+    body.matrix.scale(0.5, 0.3, 0.65);
     body.render([0.45, 0.3, 0.0, 1.0]);
 
     // tail

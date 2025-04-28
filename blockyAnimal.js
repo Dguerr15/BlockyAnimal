@@ -174,7 +174,7 @@ function setupMouseHandlers() {
         var y = ev.clientY;
         
         // Check if shift key is pressed
-        if (ev.shiftKey) {
+        if (ev.shiftKey && !g_Animation) {
             // Start the poke animation
             g_isPoking = true;
             g_pokeStartTime = performance.now()/1000.0;

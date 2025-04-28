@@ -144,7 +144,8 @@ function connectVariablesToGLSL() {
 
 // set up event listeners
 function addActionsForHtmlUI() {
-    document.getElementById("cameraSlide").addEventListener("input", function() {g_globalAngleY = this.value; g_needsRender = true;});
+    document.getElementById("cameraHSlide").addEventListener("input", function() {g_globalAngleY = this.value; g_needsRender = true;});
+    document.getElementById("cameraVSlide").addEventListener("input", function() {g_globalAngleX = this.value; g_needsRender = true;});
 
     document.getElementById("start").onclick = function() {g_Animation = true; g_needsRender = true;};
     document.getElementById("stop").onclick = function() {g_Animation = false; g_needsRender = true;};
